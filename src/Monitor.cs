@@ -19,7 +19,7 @@ sealed class Monitor : IDisposable
     readonly IntPtr handle;
     readonly object gate = new();
     int? pending;
-    bool writing;
+    bool writing, wrote;
 
     public string Name { get; }
     public bool IsPrimary { get; }
@@ -94,8 +94,15 @@ sealed class Monitor : IDisposable
                     (next, pending) = (queued, null);
                 }
                 // DDC/CI will mindestens 50 ms zwischen zwei Befehlen; manche Monitore verschlucken sonst einen.
-                for (int attempt = 0; attempt < 3 && !SetVCPFeature(handle, BrightnessCode, (uint)next); attempt++)
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    if (SetVCPFeature(handle, BrightnessCode, (uint)next))
+                    {
+                        wrote = true;
+                        break;
+                    }
                     Thread.Sleep(100);
+                }
                 Thread.Sleep(50);
             }
         });
@@ -103,8 +110,14 @@ sealed class Monitor : IDisposable
 
     public void Dispose()
     {
-        // Erst alles schreiben, was noch ansteht, dann den Monitor freigeben.
+        // Erst alles schreiben, was noch ansteht. Dann einmal im Monitor speichern: Der Samsung C24F390 vergisst
+        // per Kabel gesetzte Werte sonst beim nächsten PC-Neustart. Nur einmal am Ende, nicht bei jedem Schritt.
         SpinWait.SpinUntil(() => { lock (gate) return !writing; }, TimeSpan.FromSeconds(2));
+        if (wrote)
+        {
+            Thread.Sleep(50);
+            SaveCurrentSettings(handle);
+        }
         DestroyPhysicalMonitor(handle);
     }
 
@@ -190,4 +203,7 @@ sealed class Monitor : IDisposable
 
     [DllImport("dxva2.dll")]
     static extern bool SetVCPFeature(IntPtr handle, byte code, uint value);
+
+    [DllImport("dxva2.dll")]
+    static extern bool SaveCurrentSettings(IntPtr handle);
 }

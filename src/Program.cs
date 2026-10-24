@@ -20,7 +20,7 @@ static class Program
         return 0;
     }
 
-    /// <summary>Für Verknüpfungen und Tastenkürzel: --set 50, --change +10 / -10, --dump.</summary>
+    /// <summary>Für Verknüpfungen und Tastenkürzel: --set 50, --change +10 / -10, --dump; --restore für die Anmeldung.</summary>
     static int RunCommand(string[] args)
     {
         using var output = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true };
@@ -28,6 +28,18 @@ static class Program
         var monitors = Monitor.All();
         try
         {
+            // Bei der Anmeldung: zuletzt gewählte Helligkeit erneut setzen, ohne erst zu lesen (der Samsung
+            // verweigert das Lesen nach einem Neustart, nimmt Befehle aber an).
+            if (args[0] == "--restore")
+            {
+                foreach (var monitor in monitors)
+                    if (settings.LastBrightness.TryGetValue(monitor.Name, out int last))
+                    {
+                        monitor.Set(last);
+                        output.WriteLine($"{monitor.Name}: {last * 100 / monitor.Max} %");
+                    }
+                return 0;
+            }
             foreach (var monitor in monitors)
                 monitor.Read();
             switch (args[0])
@@ -45,7 +57,7 @@ static class Program
                 case "--dump":
                     break;
                 default:
-                    output.WriteLine("Aufruf: Lux.exe [--set <Prozent> | --change <+/-Prozent> | --dump]");
+                    output.WriteLine("Aufruf: Lux.exe [--set <Prozent> | --change <+/-Prozent> | --dump | --restore]");
                     return 2;
             }
             foreach (var monitor in monitors)

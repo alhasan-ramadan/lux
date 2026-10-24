@@ -9,6 +9,7 @@
 - **25 % bis 100 %:** setzt alle Monitore auf diese Stufe.
 - **„Alle gemeinsam bewegen“:** Ein Regler zieht die anderen mit. LUX merkt sich die Wahl.
 - **Schließen:** Klick daneben oder Esc. LUX ist danach beendet; außer beim Bedienen läuft nichts im Hintergrund.
+- **Merken:** Beim Schließen speichert LUX den Wert im Monitor (DDC-Befehl „Save Current Settings“) und in den eigenen Einstellungen. Manche Monitore vergessen per Kabel gesetzte Werte trotzdem beim PC-Neustart; dagegen hilft eine Aufgabe bei der Anmeldung mit `Lux.exe --restore` (siehe Kommandozeile).
 
 ## Voraussetzung
 
@@ -25,6 +26,7 @@ Gut für Tastenkürzel: eine Verknüpfung auf `Lux.exe --change -10` anlegen und
 | `Lux.exe --set 50` | alle Monitore auf 50 % |
 | `Lux.exe --change +10` | alle Monitore 10 Prozentpunkte heller (`-10` dunkler) |
 | `Lux.exe --dump` | Monitore und Helligkeit ausgeben |
+| `Lux.exe --restore` | die zuletzt in LUX gewählte Helligkeit erneut setzen, ohne erst zu lesen; gedacht für eine Aufgabe „Bei Anmeldung“ mit etwa 20 s Verzögerung |
 
 ## Dateien
 
