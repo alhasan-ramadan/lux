@@ -14,7 +14,7 @@
 
 DDC/CI muss im Menü des Monitors eingeschaltet sein, was meist ab Werk so ist. Eingebaute Laptop-Bildschirme regelt Windows auf anderem Weg; die zeigt LUX nicht.
 
-Getestet mit Acer XV272K LV und Samsung C24F390. Der Samsung antwortet kurz nach einem Befehl manchmal nicht; LUX wiederholt deshalb Lesen und Schreiben und lässt zwischen zwei Befehlen 50 ms Pause.
+Getestet mit Acer XV272K LV und Samsung C24F390. Der Samsung antwortet kurz nach einem Befehl manchmal nicht; LUX wiederholt deshalb Lesen und Schreiben und lässt zwischen zwei Befehlen 50 ms Pause. Nach einem Neustart verweigert er das Lesen sogar ganz, bis er den ersten Befehl bekommt. Dann bleibt der Regler trotzdem bedienbar und startet beim zuletzt bekannten Wert, erkennbar am „≈“ vor der Zahl.
 
 ## Kommandozeile
 
@@ -28,7 +28,7 @@ Gut für Tastenkürzel: eine Verknüpfung auf `Lux.exe --change -10` anlegen und
 
 ## Dateien
 
-- `%LOCALAPPDATA%\Lux\settings.json`: nur, ob die Regler gemeinsam laufen
+- `%LOCALAPPDATA%\Lux\settings.json`: ob die Regler gemeinsam laufen und die zuletzt bekannte Helligkeit pro Monitor
 
 ## Entfernen
 

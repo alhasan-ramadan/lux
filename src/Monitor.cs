@@ -53,17 +53,18 @@ sealed class Monitor : IDisposable
     /// Liest die aktuelle Helligkeit; dauert pro Monitor etwa 60 ms. Manche Monitore (etwa der Samsung C24F390)
     /// antworten kurz nach einem Befehl nicht, deshalb bis zu zehn Versuche mit kurzer Pause.
     /// </summary>
-    public void Read()
+    public bool Read()
     {
         for (int attempt = 0; attempt < 10; attempt++)
         {
             if (GetVCPFeatureAndVCPFeatureReply(handle, BrightnessCode, IntPtr.Zero, out int current, out int max))
             {
                 (Brightness, Max) = (current, max > 0 ? max : 100);
-                return;
+                return true;
             }
             Thread.Sleep(150);
         }
+        return false;
     }
 
     /// <summary>Setzt die Helligkeit im Hintergrund. Schnelle Folgen beim Ziehen werden zusammengefasst.</summary>

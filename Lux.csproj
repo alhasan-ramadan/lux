@@ -12,7 +12,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <AssemblyName>Lux</AssemblyName>
     <RootNamespace>Lux</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Product>LUX</Product>
     <ApplicationIcon>assets\lux.ico</ApplicationIcon>
     <Description>LUX – Lightweight Utility for eXternal displays. Helligkeit aller Monitore per Klick aus der Taskleiste (DDC/CI).</Description>

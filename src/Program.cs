@@ -24,6 +24,7 @@ static class Program
     static int RunCommand(string[] args)
     {
         using var output = new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true };
+        var settings = Settings.Load();
         var monitors = Monitor.All();
         try
         {
@@ -31,13 +32,15 @@ static class Program
                 monitor.Read();
             switch (args[0])
             {
+                // Setzen geht auch bei Monitoren, die das Lesen verweigern; sie nehmen Befehle trotzdem an.
                 case "--set" when args.Length > 1 && int.TryParse(args[1].TrimEnd('%'), out int percent):
-                    foreach (var monitor in monitors.Where(m => m.Brightness is not null))
+                    foreach (var monitor in monitors)
                         monitor.Set(percent * monitor.Max / 100);
                     break;
                 case "--change" when args.Length > 1 && int.TryParse(args[1].TrimEnd('%'), out int delta):
-                    foreach (var monitor in monitors.Where(m => m.Brightness is not null))
-                        monitor.Set(monitor.Brightness!.Value + delta * monitor.Max / 100);
+                    foreach (var monitor in monitors)
+                        if ((monitor.Brightness ?? settings.LastBrightness.GetValueOrDefault(monitor.Name, -1)) is int current and >= 0)
+                            monitor.Set(current + delta * monitor.Max / 100);
                     break;
                 case "--dump":
                     break;
@@ -46,8 +49,13 @@ static class Program
                     return 2;
             }
             foreach (var monitor in monitors)
+            {
                 output.WriteLine($"{monitor.Name}{(monitor.IsPrimary ? " (Hauptmonitor)" : "")}: "
-                    + (monitor.Brightness is int value ? $"{value * 100 / monitor.Max} %" : "nicht steuerbar"));
+                    + (monitor.Brightness is int value ? $"{value * 100 / monitor.Max} %" : "antwortet nicht"));
+                if (monitor.Brightness is int known)
+                    settings.LastBrightness[monitor.Name] = known;
+            }
+            settings.Save();
             return 0;
         }
         finally

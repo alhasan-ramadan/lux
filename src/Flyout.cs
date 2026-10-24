@@ -141,22 +141,20 @@ sealed class Flyout : Form
         Activate();
     }
 
-    /// <summary>Liest alle Monitore parallel; jeder Regler wird frei, sobald sein Monitor geantwortet hat.</summary>
+    /// <summary>
+    /// Liest alle Monitore parallel; jeder Regler wird frei, sobald sein Monitor fertig ist. Manche Monitore
+    /// (der Samsung C24F390 nach einem Neustart) verweigern das Lesen, nehmen Befehle aber an. Dann bleibt der
+    /// Regler bedienbar und startet beim zuletzt bekannten Wert, mit „≈“ davor.
+    /// </summary>
     Task LoadValuesAsync() => Task.WhenAll(rows.Select(async row =>
     {
-        await Task.Run(row.Monitor.Read);
+        bool answered = await Task.Run(row.Monitor.Read);
+        int value = row.Monitor.Brightness ?? settings.LastBrightness.GetValueOrDefault(row.Monitor.Name, row.Monitor.Max);
         syncing = true;
-        if (row.Monitor.Brightness is int value)
-        {
-            row.Bar.Maximum = row.Monitor.Max;
-            row.Bar.Value = Math.Clamp(value, 0, row.Monitor.Max);
-            row.Bar.Enabled = true;
-            row.Value.Text = Percent(row.Monitor, value);
-        }
-        else
-        {
-            row.Value.Text = "nicht steuerbar";
-        }
+        row.Bar.Maximum = row.Monitor.Max;
+        row.Bar.Value = Math.Clamp(value, 0, row.Monitor.Max);
+        row.Bar.Enabled = true;
+        row.Value.Text = answered ? Percent(row.Monitor, value) : $"≈ {Percent(row.Monitor, value)}";
         syncing = false;
     }));
 
@@ -191,11 +189,15 @@ sealed class Flyout : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        if (together is not null && together.Checked != settings.Together)
+        bool changed = together is not null && together.Checked != settings.Together;
+        settings.Together = together?.Checked ?? settings.Together;
+        foreach (var monitor in monitors.Where(m => m.Brightness is not null))
         {
-            settings.Together = together.Checked;
-            settings.Save();
+            changed |= settings.LastBrightness.GetValueOrDefault(monitor.Name, -1) != monitor.Brightness;
+            settings.LastBrightness[monitor.Name] = monitor.Brightness!.Value;
         }
+        if (changed)
+            settings.Save();
         foreach (var monitor in monitors)
             monitor.Dispose();
         base.OnFormClosed(e);

@@ -11,6 +11,9 @@ sealed class Settings
     /// <summary>Alle Monitore bewegen sich zusammen.</summary>
     public bool Together { get; set; }
 
+    /// <summary>Zuletzt bekannte Helligkeit pro Monitor, falls einer beim nächsten Mal das Lesen verweigert.</summary>
+    public Dictionary<string, int> LastBrightness { get; set; } = [];
+
     public static Settings Load()
     {
         try
@@ -32,7 +35,7 @@ sealed class Settings
         }
         catch (IOException)
         {
-            // Nur eine Bequemlichkeit; ohne Datei startet LUX mit getrennten Reglern.
+            // Nur eine Bequemlichkeit; ohne Datei startet LUX mit getrennten Reglern und ohne gemerkte Werte.
         }
     }
 }
